@@ -20,18 +20,15 @@ public class MovieDatabase {
     private static ArrayList<User> users = new ArrayList<>();
     private static User currentUser;
 
-    // File paths
+    // File path
     private static final String USER_DB_FILE_PATH = "user_db.csv";
+
+    //movie path
     private static final String MOVIE_DB_FILE_PATH = "movie_db.csv";
 
-
     public static void main(String[] args) {
-
-        // Load user data from encrypted file
-        loadUserData();
-
-        // Load movies data from CSV
-        loadMovieData();        
+        // Load data from CSV
+        loadMovieData();
 
         while (true) {
             System.out.println("\n----------------------------------------------------------\n");
@@ -47,9 +44,8 @@ public class MovieDatabase {
                     loginUser();
                     break;
                 case 3:
-                    // Save user data and exit
-                    saveUserData();
-                    saveMovieData();
+                    // Save data and exit
+                    saveData();
                     System.out.println("Exiting Movie Database. Goodbye!");
                     System.exit(0);
             }
@@ -75,15 +71,13 @@ public class MovieDatabase {
                         updateMovieDatabase();
                         break;
                     case 5:
-                        // Save user data and log out
-                        saveUserData();
-                        saveMovieData();
+                        // Save data and log out
+                        saveData();
                         logOut();
                         break;
                     case 6:
-                        // Save user data and exit
-                        saveUserData();
-                        saveMovieData();
+                        // Save data and exit
+                        saveData();
                         System.out.println("\n----------------------------------------------------------\n");
                         System.out.println("Exiting Movie Database. Goodbye!\n");
                         System.exit(0);
@@ -91,6 +85,7 @@ public class MovieDatabase {
             }
         }
     }
+
 
     // User class to store user information.
     static class User {
@@ -373,61 +368,132 @@ public class MovieDatabase {
         System.out.println("Logged out successfully. Goodbye, and see you next time!");
     }
 
-    private static void loadUserData() {
-        try (BufferedReader br = new BufferedReader(new FileReader(USER_DB_FILE_PATH))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] parts = line.split(",");
-                if (parts.length >= 4) {
-                    String email = parts[1];
-                    String username = parts[2];
-                    String password = parts[3];
+    private static void loadMovieData() {
+        try (BufferedReader userBr = new BufferedReader(new FileReader(USER_DB_FILE_PATH));
+             BufferedReader movieBr = new BufferedReader(new FileReader(MOVIE_DB_FILE_PATH))) {
+    
+            // Load user data
+            String userLine;
+            boolean isFirstUserLine = true;
+            while ((userLine = userBr.readLine()) != null) {
+                if (isFirstUserLine) {
+                    isFirstUserLine = false;
+                    continue;
+                }
+                String[] userParts = userLine.split(",");
+                if (userParts.length >= 4) { // Ensure it's a user data line
+                    String email = userParts[1];
+                    String username = userParts[2];
+                    String password = userParts[3];
     
                     User loadedUser = new User(email, username, password);
                     users.add(loadedUser);
+    
+                    // Load movies for the user
+                    loadMoviesForUser(username, movieBr);
                 }
             }
         } catch (IOException e) {
-            System.out.println("Error loading user data: " + e.getMessage());
+            System.out.println("Error loading data: " + e.getMessage());
         }
     }
+    
+    // Helper method to load movies for a user
+private static void loadMoviesForUser(String username, BufferedReader br) {
+    String movieLine;
+    ArrayList<Movie> userMovies = new ArrayList<>();
+    try {
+        while ((movieLine = br.readLine()) != null) {
+            String[] movieParts = movieLine.split(",");
+            if (movieParts.length >= 6) { // Ensure it's a movie data line
+                String movieUsername = movieParts[0];
+                if (username.equals(movieUsername)) {
+                    String movieName = movieParts[1];
+                    String status = movieParts[2];
+                    int rating = Integer.parseInt(movieParts[3]);
+                    String completionDate = movieParts[4];
+                    String review = movieParts[5];
 
-    private static void saveUserData() {
-        try (PrintWriter writer = new PrintWriter(new FileWriter(USER_DB_FILE_PATH))) {
-            // Save the header line only if there are users
-            if (!users.isEmpty()) {
-                writer.println("sr.no,email_id,username,password");
+                    // Create and add the movie to the userMovies list
+                    Movie loadedMovie = new Movie(movieName, status, rating, completionDate, review, findUserByUsername(username));
+                    userMovies.add(loadedMovie);
+                }
             }
+        }
+    } catch (IOException e) {
+        System.out.println("Error loading movies for user " + username + ": " + e.getMessage());
+    }
+
+    // Find the user and add the loaded movies
+    User user = findUserByUsername(username);
+    if (user != null) {
+        if (userMovies.size() > 0) {
+            for (Movie userMovie : userMovies) {
+                if ("Watched".equals(userMovie.status)) {
+                    user.watchedMovies.add(userMovie);
+                } else if ("PTW".equals(userMovie.status)) {
+                    user.planToWatchMovies.add(userMovie);
+                    movies.add(userMovie); // Add to the movies list
+                }
+            }
+        }
+    }
+}
+
+    private static void saveData() {
+        try (PrintWriter userWriter = new PrintWriter(new FileWriter(USER_DB_FILE_PATH));
+             PrintWriter movieWriter = new PrintWriter(new FileWriter(MOVIE_DB_FILE_PATH))) {
+    
+            // Save user data to user_db.csv
+            userWriter.println("user_sr.no,email_id,username,password");
     
             for (int i = 0; i < users.size(); i++) {
                 User user = users.get(i);
-                writer.println((i + 1) + "," + user.email + "," + user.username + "," + user.password);
-            }
-        } catch (IOException e) {
-            System.out.println("Error saving user data: " + e.getMessage());
-        }
-    }
-
-    private static void saveMovieData() {
-        try (PrintWriter writer = new PrintWriter(new FileWriter(MOVIE_DB_FILE_PATH))) {
-            // Save the header line only if there are movies
-            if (!movies.isEmpty()) {
-                writer.println("sr.no,username,movie_name,status,rating,completion_date,review");
-            }
+                userWriter.println((i + 1) + "," + user.email + "," + user.username + "," + user.password);
     
-            for (int i = 0; i < movies.size(); i++) {
-                Movie movie = movies.get(i);
-                String line = (i + 1) + "," + movie.user.username + "," + movie.name + "," +
-                        movie.status + "," + movie.rating + "," + movie.completionDate + "," + movie.review;
-                writer.println(line);
-                System.out.println("Debug: Saved movie data - " + line); // Add this line for debugging
+                // Save movies to movie_db.csv
+                for (Movie movie : user.watchedMovies) {
+                    saveMovieData(movie, movieWriter);
+                }
+                for (Movie movie : user.planToWatchMovies) {
+                    saveMovieData(movie, movieWriter);
+                }
             }
         } catch (IOException e) {
-            System.out.println("Error saving movie data: " + e.getMessage());
+            System.out.println("Error saving data: " + e.getMessage());
         }
     }
 
-    private static void loadMovieData() {
+    private static void saveMovieData(Movie movie, PrintWriter writer) {
+        String line = movie.user.username + "," + movie.name + "," + movie.status + ","
+                + movie.rating + "," + movie.completionDate + "," + movie.review;
+        
+        // Check if the movie is already saved in the file
+        if (!isMovieAlreadySaved(movie, writer)) {
+            writer.println(line);
+            System.out.println("Debug: Saved movie data - " + line);
+        }
+    }
+
+    private static boolean isMovieAlreadySaved(Movie movie, PrintWriter writer) {
+        // Load existing movie data from the file
+        ArrayList<Movie> existingMovies = loadExistingMovieData();
+    
+        // Check if the movie already exists in the file
+        for (Movie existingMovie : existingMovies) {
+            if (existingMovie.user.username.equals(movie.user.username)
+                    && existingMovie.name.equals(movie.name)
+                    && existingMovie.status.equals(movie.status)) {
+                return true;
+            }
+        }
+    
+        return false;
+    }
+
+    private static ArrayList<Movie> loadExistingMovieData() {
+        ArrayList<Movie> existingMovies = new ArrayList<>();
+    
         try (BufferedReader br = new BufferedReader(new FileReader(MOVIE_DB_FILE_PATH))) {
             String line;
             boolean isFirstLine = true; // To skip the header
@@ -437,23 +503,24 @@ public class MovieDatabase {
                     continue;
                 }
                 String[] parts = line.split(",");
-                String movieName = parts[2];
-                String status = parts[3];
-                int rating = Integer.parseInt(parts[4]);
-                String completionDate = parts[5];
-                String review = parts[6];
-                String username = parts[1];
+                if (parts.length >= 5) { // Ensure it's a movie data line
+                    String username = parts[0];
+                    String movieName = parts[1];
+                    String status = parts[2];
+                    int rating = Integer.parseInt(parts[3]);
+                    String completionDate = parts[4];
+                    String review = parts[5];
     
-                // Find the user corresponding to the movie
-                User user = findUserByUsername(username);
-    
-                // Create and add the movie to the movies list
-                Movie loadedMovie = new Movie(movieName, status, rating, completionDate, review, user);
-                movies.add(loadedMovie);
+                    // Create and add the movie to the existingMovies list
+                    Movie existingMovie = new Movie(movieName, status, rating, completionDate, review, findUserByUsername(username));
+                    existingMovies.add(existingMovie);
+                }
             }
         } catch (IOException e) {
-            System.out.println("Error loading movie data: " + e.getMessage());
+            System.out.println("Error loading existing movie data: " + e.getMessage());
         }
+    
+        return existingMovies;
     }
 
     private static User findUserByUsername(String username) {
