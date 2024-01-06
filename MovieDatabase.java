@@ -1,13 +1,6 @@
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Scanner;
-import java.util.*;
-import java.io.*;
-import java.security.Key;
-import java.security.NoSuchAlgorithmException;
-import javax.crypto.Cipher;
-import javax.crypto.KeyGenerator;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKey;
 
 /**
  * Movie Database Program
@@ -31,12 +24,8 @@ public class MovieDatabase {
     private static final String USER_DB_FILE_PATH = "user_db.csv";
     private static final String MOVIE_DB_FILE_PATH = "movie_db.csv";
 
-    // Encryption key for user_db.csv
-    private static Key encryptionKey;
 
     public static void main(String[] args) {
-        // Load encryption key
-        loadEncryptionKey();
 
         // Load user data from encrypted file
         loadUserData();
@@ -96,7 +85,7 @@ public class MovieDatabase {
                         saveUserData();
                         saveMovieData();
                         System.out.println("\n----------------------------------------------------------\n");
-                        System.out.println("Exiting Movie Database. Goodbye!");
+                        System.out.println("Exiting Movie Database. Goodbye!\n");
                         System.exit(0);
                 }
             }
@@ -336,7 +325,7 @@ public class MovieDatabase {
     
         // Move the movie from Plan to Watch to Watched
         planToWatchMovies.remove(selectedMovie);
-        Movie watchedMovie = new Movie(selectedMovie.name, "Watched", rating, completionDate, review);
+        Movie watchedMovie = new Movie(selectedMovie.name, "Watched", rating, completionDate, review, currentUser);
         currentUser.watchedMovies.add(watchedMovie);
         System.out.println("Movie moved to Watched list!");
     }
@@ -389,15 +378,14 @@ public class MovieDatabase {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] parts = line.split(",");
-                String email = parts[1];
-                String username = parts[2];
-                String encryptedPassword = parts[3];
-
-                // Decrypt password
-                String password = decryptPassword(encryptedPassword);
-
-                User loadedUser = new User(email, username, password);
-                users.add(loadedUser);
+                if (parts.length >= 4) {
+                    String email = parts[1];
+                    String username = parts[2];
+                    String password = parts[3];
+    
+                    User loadedUser = new User(email, username, password);
+                    users.add(loadedUser);
+                }
             }
         } catch (IOException e) {
             System.out.println("Error loading user data: " + e.getMessage());
@@ -406,13 +394,14 @@ public class MovieDatabase {
 
     private static void saveUserData() {
         try (PrintWriter writer = new PrintWriter(new FileWriter(USER_DB_FILE_PATH))) {
-            writer.println("sr.no,email_id,username,password");
-
+            // Save the header line only if there are users
+            if (!users.isEmpty()) {
+                writer.println("sr.no,email_id,username,password");
+            }
+    
             for (int i = 0; i < users.size(); i++) {
                 User user = users.get(i);
-                String encryptedPassword = encryptPassword(user.password);
-
-                writer.println((i + 1) + "," + user.email + "," + user.username + "," + encryptedPassword);
+                writer.println((i + 1) + "," + user.email + "," + user.username + "," + user.password);
             }
         } catch (IOException e) {
             System.out.println("Error saving user data: " + e.getMessage());
@@ -421,13 +410,17 @@ public class MovieDatabase {
 
     private static void saveMovieData() {
         try (PrintWriter writer = new PrintWriter(new FileWriter(MOVIE_DB_FILE_PATH))) {
-            writer.println("sr.no,username,movie_name,status,rating,completion_date,review");
-
+            // Save the header line only if there are movies
+            if (!movies.isEmpty()) {
+                writer.println("sr.no,username,movie_name,status,rating,completion_date,review");
+            }
+    
             for (int i = 0; i < movies.size(); i++) {
                 Movie movie = movies.get(i);
-
-                writer.println((i + 1) + "," + movie.user.username + "," + movie.name + "," +
-                        movie.status + "," + movie.rating + "," + movie.completionDate + "," + movie.review);
+                String line = (i + 1) + "," + movie.user.username + "," + movie.name + "," +
+                        movie.status + "," + movie.rating + "," + movie.completionDate + "," + movie.review;
+                writer.println(line);
+                System.out.println("Debug: Saved movie data - " + line); // Add this line for debugging
             }
         } catch (IOException e) {
             System.out.println("Error saving movie data: " + e.getMessage());
@@ -437,7 +430,12 @@ public class MovieDatabase {
     private static void loadMovieData() {
         try (BufferedReader br = new BufferedReader(new FileReader(MOVIE_DB_FILE_PATH))) {
             String line;
+            boolean isFirstLine = true; // To skip the header
             while ((line = br.readLine()) != null) {
+                if (isFirstLine) {
+                    isFirstLine = false;
+                    continue;
+                }
                 String[] parts = line.split(",");
                 String movieName = parts[2];
                 String status = parts[3];
@@ -445,10 +443,10 @@ public class MovieDatabase {
                 String completionDate = parts[5];
                 String review = parts[6];
                 String username = parts[1];
-
+    
                 // Find the user corresponding to the movie
                 User user = findUserByUsername(username);
-
+    
                 // Create and add the movie to the movies list
                 Movie loadedMovie = new Movie(movieName, status, rating, completionDate, review, user);
                 movies.add(loadedMovie);
@@ -467,39 +465,5 @@ public class MovieDatabase {
         return null; // Handle the case where the user is not found
     }
 
-    private static void loadEncryptionKey() {
-        try {
-            KeyGenerator keyGen = KeyGenerator.getInstance("Blowfish");
-            encryptionKey = keyGen.generateKey();
-        } catch (NoSuchAlgorithmException e) {
-            System.out.println("Error generating encryption key: " + e.getMessage());
-        }
-    }
-
-    private static String encryptPassword(String password) {
-        try {
-            Cipher cipher = Cipher.getInstance("Blowfish");
-            cipher.init(Cipher.ENCRYPT_MODE, encryptionKey);
-
-            byte[] encryptedBytes = cipher.doFinal(password.getBytes());
-            return new String(encryptedBytes);
-        } catch (Exception e) {
-            System.out.println("Error encrypting password: " + e.getMessage());
-            return password; // Return the original password in case of an error
-        }
-    }
-
-    private static String decryptPassword(String encryptedPassword) {
-        try {
-            Cipher cipher = Cipher.getInstance("Blowfish");
-            cipher.init(Cipher.DECRYPT_MODE, encryptionKey);
-
-            byte[] decryptedBytes = cipher.doFinal(encryptedPassword.getBytes());
-            return new String(decryptedBytes);
-        } catch (Exception e) {
-            System.out.println("Error decrypting password: " + e.getMessage());
-            return encryptedPassword; // Return the original encrypted password in case of an error
-        }
-    }
 }
 
