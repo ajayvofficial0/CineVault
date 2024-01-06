@@ -1,9 +1,9 @@
 # CineVault
-CineVault simplifies your movie world! Organize watched films, plan to watch, and experience a secure login with advanced encryption. Elevate your movie journey with CineVault—where user-friendly organization meets top-notch security, offering a personalized and protected movie database for all film enthusiasts.
+CineVault simplifies your movie world! Organize watched films, plan to watch, and experience a secure login. Elevate your movie journey with CineVault—where user-friendly organization meets top-notch security, offering a personalized and protected movie database for all film enthusiasts.
 
 # CineVault: Movie Database System
 
-**Author:** Jeyadheep V  
+**Author:** Jeyadheep V
 **Date:** 6/1/2024
 
 ## Overview
@@ -33,12 +33,10 @@ CineVault is a Java-based Movie Database system allowing users to register, logi
    - User data is stored in `user_db.csv` (encrypted).
    - Movie data is stored in `movie_db.csv` with fields: sr.no, username, movie_name, status, rating, and review.
 
-7. **Encryption:**
-   - User passwords in `user_db.csv` are encrypted using Blowfish encryption.
 
 ## File Structure
 
-- `CineVault.java`: Main Java source code file.
+- `MovieDatabase.java`: Main Java source code file.
 - `user_db.csv`: CSV file for encrypted user data.
 - `movie_db.csv`: CSV file for movie data.
 
@@ -46,7 +44,7 @@ CineVault is a Java-based Movie Database system allowing users to register, logi
 
 1. **Clone the Repository**
    ```bash
-   git clone https://github.com/BackBenchDreamer/CineVault.git
+     git clone https://github.com/BackBenchDreamer/CineVault.git
 
 2. **Compile the Code**
    ```bash
@@ -57,18 +55,21 @@ CineVault is a Java-based Movie Database system allowing users to register, logi
 
 ## Output
 
-1. **Register and Login Page** <br>![image](https://github.com/BackBenchDreamer/LearninLanguages/assets/112080762/7404c290-3b63-4d2c-be5d-1640f385fab5)
+1. **Register and Login Page** <br>![image](https://github.com/BackBenchDreamer/CineVault/assets/112080762/863ad676-d684-4977-8ce0-6958bae747f6)
 
-2. **Adding Movie to Watched List** <br>![image](https://github.com/BackBenchDreamer/LearninLanguages/assets/112080762/d801248c-9871-415e-be3c-ee5b82880dff)
 
-3. **Adding Movie to Plan to Watch List** <br>![image](https://github.com/BackBenchDreamer/LearninLanguages/assets/112080762/1f8e0691-9181-4a44-8985-8cdffa212827)
+2. **Adding Movie to Watched List** <br> ![image](https://github.com/BackBenchDreamer/CineVault/assets/112080762/4bfa6c98-35c2-43ac-a59a-d61f41f2e3ec)
 
-4. **Displaying the Movie List** <br>![image](https://github.com/BackBenchDreamer/LearninLanguages/assets/112080762/fdfcbd10-0dc2-496d-a598-59f7f5ccfd59)
+3. **Adding Movie to Plan to Watch List** <br> ![image](https://github.com/BackBenchDreamer/CineVault/assets/112080762/93688d73-574c-49a2-b4f7-3f1ebbfebcc8)
 
-5. **Moving Movie from Plan to Watch List to Watched Movies List**<br>![image](https://github.com/BackBenchDreamer/LearninLanguages/assets/112080762/3e2e26ce-c690-4915-a0df-8e378e52539e)
+4. **Displaying the Movie List** <br> ![image](https://github.com/BackBenchDreamer/CineVault/assets/112080762/aed891f9-fa08-4d26-aaeb-84bd9e078668)
 
-6. **Deleting Movies from Watched List** <br> ![image](https://github.com/BackBenchDreamer/LearninLanguages/assets/112080762/2d8297f5-729e-4eb5-88ae-d921766a64b3)
+5. **Moving Movie from Plan to Watch List to Watched Movies List**<br> ![image](https://github.com/BackBenchDreamer/CineVault/assets/112080762/b71cfc89-9522-4f53-988d-a8902c6208f0)
 
-7. **Exit** <br>![image](https://github.com/BackBenchDreamer/LearninLanguages/assets/112080762/9a1475c0-3454-4741-9f4a-baa4db721156)
+6. **Deleting Movies from Watched List** <br> ![image](https://github.com/BackBenchDreamer/CineVault/assets/112080762/a8e6832a-bdea-4fdf-915b-86c4b92e811f)
+
+7. **Exit** <br> ![image](https://github.com/BackBenchDreamer/CineVault/assets/112080762/d14f0454-42ff-4b3a-b975-cc4a463435e3)
  
-8. **How the Data is Stored in Database** <br> ![image](https://github.com/BackBenchDreamer/LearninLanguages/assets/112080762/64d2cf07-b740-4cc0-bb60-3e45354c7655)
+8. **How the Data is Stored in user_db.csv** <br> ![image](https://github.com/BackBenchDreamer/CineVault/assets/112080762/11677496-aa0c-4ae1-808a-be1691178fbb)
+
+9. **How the Data is Stored in movie_db.csv** <br> ![image](https://github.com/BackBenchDreamer/CineVault/assets/112080762/763e106e-d8e1-4602-9431-4230324703f5)
