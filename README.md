@@ -3,8 +3,7 @@ CineVault simplifies your movie world! Organize watched films, plan to watch, an
 
 # CineVault: Movie Database System
 
-**Authors:** Jeyadheep V <br>
-             Ajay Viswanagaraj<br>
+**Authors:** Jeyadheep V, Ajay Viswanagaraj<br>
 **Date:** 6/1/2024
 
 ## Overview
